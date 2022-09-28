@@ -22,6 +22,11 @@ pub mod anchor_movie_review_program {
         movie_review.description = description;
         movie_review.rating = rating;
 
+        msg!("Movie Comment Counter Account Created");
+        let movie_comment_counter = &mut ctx.accounts.movie_comment_counter;
+        movie_comment_counter.counter = 0;
+        msg!("Counter: {}", movie_comment_counter.counter);
+
         mint_to(
             CpiContext::new_with_signer(
                 ctx.accounts.token_program.to_account_info(),
@@ -40,6 +45,40 @@ pub mod anchor_movie_review_program {
 
         msg!("Minted tokens");
         
+        Ok(())
+    }
+
+    pub fn add_comment(ctx: Context<AddComment>, comment: String) -> Result<()> {
+        msg!("Comment Account Created");
+        msg!("Comment: {}", comment);
+
+        let movie_comment = &mut ctx.accounts.movie_comment;
+        let movie_comment_counter = &mut ctx.accounts.movie_comment_counter;
+
+        movie_comment.review = ctx.accounts.movie_review.key();
+        movie_comment.commenter = ctx.accounts.initializer.key();
+        movie_comment.comment = comment;
+        movie_comment.count = movie_comment_counter.counter;
+
+        movie_comment_counter.counter += 1;
+
+        mint_to(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                MintTo {
+                    mint: ctx.accounts.mint.to_account_info(),
+                    to: ctx.accounts.token_account.to_account_info(),
+                    authority: ctx.accounts.mint.to_account_info(),
+                },
+                &[&[
+                    b"mint",
+                    &[*ctx.bumps.get("mint").unwrap()]
+                ]]
+            ), 
+            5*10^6
+        )?;
+        msg!("Minted Tokens");
+
         Ok(())
     }
 
@@ -85,6 +124,14 @@ pub struct AddMovieReview<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     #[account(
+        init,
+        seeds = [b"counter", movie_review.key().as_ref()],
+        bump,
+        payer = initializer,
+        space = 8 + 8
+    )]
+    pub movie_comment_counter: Account<'info, MovieCommentCounter>,
+    #[account(
         seeds=[b"mint"],
         bump,
         mut
@@ -99,6 +146,45 @@ pub struct AddMovieReview<'info> {
     pub token_account: Account<'info, TokenAccount>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub rent: Sysvar<'info, Rent>
+}
+
+#[derive(Accounts)]
+#[instruction(comment:String)]
+pub struct AddComment<'info> {
+    #[account(
+        init,
+        seeds = [movie_review.key().as_ref(), &movie_comment_counter.counter.to_le_bytes()],
+        bump,
+        payer = initializer,
+        space = 8 + 32 + 32 + 4 + comment.len() + 8
+    )]
+    pub movie_comment: Account<'info, MovieComment>,
+    pub movie_review: Account<'info, MovieAccountState>,
+    #[account(
+        mut,
+        seeds = [b"counter", movie_review.key().as_ref()],
+        bump,
+    )]
+    pub movie_comment_counter: Account<'info, MovieCommentCounter>,
+    #[account(
+        mut,
+        seeds = [b"mint"],
+        bump
+    )]
+    pub mint: Account<'info, Mint>,
+    #[account(
+        init_if_needed,
+        payer = initializer,
+        associated_token::mint = mint,
+        associated_token::authority = initializer
+    )]
+    pub token_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub initializer: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub rent: Sysvar<'info, Rent>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -157,6 +243,19 @@ pub struct MovieAccountState {
     pub rating: u8,
     pub title: String,
     pub description: String,
+}
+
+#[account]
+pub struct MovieCommentCounter {
+    pub counter: u64,
+}
+
+#[account]
+pub struct MovieComment {
+    pub review: Pubkey,    // 32
+    pub commenter: Pubkey, // 32
+    pub comment: String,   // 4 + len()
+    pub count: u64,        // 8
 }
 
 #[error_code]

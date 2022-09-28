@@ -17,6 +17,7 @@ describe("anchor-movie-review-program", () => {
     description: "Wow what a good movie it was real great",
     rating: 5,
   }
+
   const [movie_pda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(movie.title), provider.wallet.publicKey.toBuffer()],
     program.programId
@@ -24,6 +25,11 @@ describe("anchor-movie-review-program", () => {
 
   const [mint] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("mint")],
+    program.programId
+  )
+
+  const [commentCounterPda] = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("counter"), movie_pda.toBuffer()],
     program.programId
   )
 
@@ -36,7 +42,7 @@ describe("anchor-movie-review-program", () => {
       .rpc()
   })
 
-  it("Movie review is added`", async () => {
+  it("Movie review is added", async () => {
     // Add your test here.
     const tokenAccount = await getAssociatedTokenAddress(
       mint,
@@ -49,6 +55,7 @@ describe("anchor-movie-review-program", () => {
         movieReview: movie_pda,
         mint: mint,
         tokenAccount: tokenAccount,
+        movieCommentCounter: commentCounterPda,
       })
       .rpc()
 
@@ -62,7 +69,7 @@ describe("anchor-movie-review-program", () => {
     expect(Number(userAta.amount)).to.equal((10 * 10) ^ 6)
   })
 
-  it("Movie review is updated`", async () => {
+  it("Movie review is updated", async () => {
     const newDescription = "Wow this is new"
     const newRating = 4
 
@@ -78,6 +85,36 @@ describe("anchor-movie-review-program", () => {
     expect(newRating === account.rating)
     expect(newDescription === account.description)
     expect(account.reviewer === provider.wallet.publicKey)
+  })
+
+  it("Adds a comment to a movie review", async () => {
+    const tokenAccount = await getAssociatedTokenAddress(
+      mint,
+      provider.wallet.publicKey
+    )
+
+    const commentCounter = await program.account.movieCommentCounter.fetch(
+      commentCounterPda
+    )
+
+    const [commentPda] = anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        movie_pda.toBuffer(),
+        commentCounter.counter.toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    )
+
+    const tx = await program.methods
+      .addComment("Just a test comment")
+      .accounts({
+        movieReview: movie_pda,
+        mint: mint,
+        tokenAccount: tokenAccount,
+        movieCommentCounter: commentCounterPda,
+        movieComment: commentPda,
+      })
+      .rpc()
   })
 
   it("Deletes a movie review", async () => {
