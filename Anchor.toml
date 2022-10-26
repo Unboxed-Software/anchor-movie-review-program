@@ -1,14 +1,14 @@
 [features]
-seeds = false
+seeds = true
 skip-lint = false
 [programs.localnet]
-anchor_movie_review_program = "FmzAVsBmJWcfkfe7VrvEi7pLA9ALLDWB3NoU2MvLrCZj"
+anchor_movie_review_program = "ET1Gctnke2Gwusu336M2kfaRsfMY9ddg6RHWD3GzJDyN"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "/Users/James/.config/solana/id.json"
 
 [scripts]

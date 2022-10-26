@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{mint_to, MintTo, Mint, TokenAccount, Token};
 use anchor_spl::associated_token::AssociatedToken;
 
-declare_id!("FmzAVsBmJWcfkfe7VrvEi7pLA9ALLDWB3NoU2MvLrCZj");
+declare_id!("ET1Gctnke2Gwusu336M2kfaRsfMY9ddg6RHWD3GzJDyN");
 
 #[program]
 pub mod anchor_movie_review_program {
@@ -36,7 +36,7 @@ pub mod anchor_movie_review_program {
                     mint: ctx.accounts.mint.to_account_info()
                 },
                 &[&[
-                    b"mint",
+                    "mint".as_bytes().as_ref(),
                     &[*ctx.bumps.get("mint").unwrap()]
                 ]]
             ),
@@ -71,7 +71,7 @@ pub mod anchor_movie_review_program {
                     authority: ctx.accounts.mint.to_account_info(),
                 },
                 &[&[
-                    b"mint",
+                    "mint".as_bytes().as_ref(),
                     &[*ctx.bumps.get("mint").unwrap()]
                 ]]
             ), 
@@ -125,14 +125,14 @@ pub struct AddMovieReview<'info> {
     pub token_program: Program<'info, Token>,
     #[account(
         init,
-        seeds = [b"counter", movie_review.key().as_ref()],
+        seeds = ["counter".as_bytes().as_ref(), movie_review.key().as_ref()],
         bump,
         payer = initializer,
         space = 8 + 8
     )]
     pub movie_comment_counter: Account<'info, MovieCommentCounter>,
     #[account(
-        seeds=[b"mint"],
+        seeds=["mint".as_bytes().as_ref()],
         bump,
         mut
     )]
@@ -162,13 +162,13 @@ pub struct AddComment<'info> {
     pub movie_review: Account<'info, MovieAccountState>,
     #[account(
         mut,
-        seeds = [b"counter", movie_review.key().as_ref()],
+        seeds = ["counter".as_bytes().as_ref(), movie_review.key().as_ref()],
         bump,
     )]
     pub movie_comment_counter: Account<'info, MovieCommentCounter>,
     #[account(
         mut,
-        seeds = [b"mint"],
+        seeds = ["mint".as_bytes().as_ref()],
         bump
     )]
     pub mint: Account<'info, Mint>,
@@ -223,7 +223,7 @@ pub struct DeleteMovieReview<'info> {
 pub struct InitializeMint<'info> {
     #[account(
         init,
-        seeds = [b"mint"],
+        seeds = ["mint".as_bytes().as_ref()],
         bump,
         payer = user,
         mint::decimals = 6,
