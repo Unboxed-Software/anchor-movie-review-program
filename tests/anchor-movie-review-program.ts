@@ -16,7 +16,7 @@ describe("anchor-movie-review-program", () => {
     description: "Wow what a good movie it was real great",
     rating: 5,
   }
-  const [movie_pda] = anchor.web3.PublicKey.findProgramAddressSync(
+  const [moviePda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(movie.title), provider.wallet.publicKey.toBuffer()],
     program.programId
   )
@@ -25,12 +25,9 @@ describe("anchor-movie-review-program", () => {
     // Add your test here.
     const tx = await program.methods
       .addMovieReview(movie.title, movie.description, movie.rating)
-      .accounts({
-        movieReview: movie_pda,
-      })
       .rpc()
 
-    const account = await program.account.movieAccountState.fetch(movie_pda)
+    const account = await program.account.movieAccountState.fetch(moviePda)
     expect(movie.title === account.title)
     expect(movie.rating === account.rating)
     expect(movie.description === account.description)
@@ -43,12 +40,9 @@ describe("anchor-movie-review-program", () => {
 
     const tx = await program.methods
       .updateMovieReview(movie.title, newDescription, newRating)
-      .accounts({
-        movieReview: movie_pda,
-      })
       .rpc()
 
-    const account = await program.account.movieAccountState.fetch(movie_pda)
+    const account = await program.account.movieAccountState.fetch(moviePda)
     expect(movie.title === account.title)
     expect(newRating === account.rating)
     expect(newDescription === account.description)
@@ -56,9 +50,6 @@ describe("anchor-movie-review-program", () => {
   })
 
   it("Deletes a movie review", async () => {
-    const tx = await program.methods
-      .deleteMovieReview(movie.title)
-      .accounts({ movieReview: movie_pda })
-      .rpc()
+    const tx = await program.methods.deleteMovieReview(movie.title).rpc()
   })
 })
