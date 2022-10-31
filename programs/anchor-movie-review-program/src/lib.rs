@@ -31,7 +31,7 @@ pub mod anchor_movie_review_program {
                     mint: ctx.accounts.mint.to_account_info()
                 },
                 &[&[
-                    b"mint",
+                    "mint".as_bytes(),
                     &[*ctx.bumps.get("mint").unwrap()]
                 ]]
             ),
@@ -85,7 +85,7 @@ pub struct AddMovieReview<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     #[account(
-        seeds=[b"mint"],
+        seeds=["mint".as_bytes()],
         bump,
         mut
     )]
@@ -137,7 +137,7 @@ pub struct DeleteMovieReview<'info> {
 pub struct InitializeMint<'info> {
     #[account(
         init,
-        seeds = [b"mint"],
+        seeds = ["mint".as_bytes()],
         bump,
         payer = user,
         mint::decimals = 6,

@@ -17,6 +17,7 @@ describe("anchor-movie-review-program", () => {
     description: "Wow what a good movie it was real great",
     rating: 5,
   }
+
   const [movie_pda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(movie.title), provider.wallet.publicKey.toBuffer()],
     program.programId
@@ -28,16 +29,10 @@ describe("anchor-movie-review-program", () => {
   )
 
   it("Initializes the reward token", async () => {
-    const tx = await program.methods
-      .initializeTokenMint()
-      .accounts({
-        mint: mint,
-      })
-      .rpc()
+    const tx = await program.methods.initializeTokenMint().rpc()
   })
 
   it("Movie review is added`", async () => {
-    // Add your test here.
     const tokenAccount = await getAssociatedTokenAddress(
       mint,
       provider.wallet.publicKey
@@ -46,8 +41,6 @@ describe("anchor-movie-review-program", () => {
     const tx = await program.methods
       .addMovieReview(movie.title, movie.description, movie.rating)
       .accounts({
-        movieReview: movie_pda,
-        mint: mint,
         tokenAccount: tokenAccount,
       })
       .rpc()
@@ -68,9 +61,6 @@ describe("anchor-movie-review-program", () => {
 
     const tx = await program.methods
       .updateMovieReview(movie.title, newDescription, newRating)
-      .accounts({
-        movieReview: movie_pda,
-      })
       .rpc()
 
     const account = await program.account.movieAccountState.fetch(movie_pda)
@@ -81,9 +71,6 @@ describe("anchor-movie-review-program", () => {
   })
 
   it("Deletes a movie review", async () => {
-    const tx = await program.methods
-      .deleteMovieReview(movie.title)
-      .accounts({ movieReview: movie_pda })
-      .rpc()
+    const tx = await program.methods.deleteMovieReview(movie.title).rpc()
   })
 })

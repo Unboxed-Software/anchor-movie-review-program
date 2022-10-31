@@ -1,5 +1,5 @@
 [features]
-seeds = false
+seeds = true
 skip-lint = false
 [programs.localnet]
 anchor_movie_review_program = "FmzAVsBmJWcfkfe7VrvEi7pLA9ALLDWB3NoU2MvLrCZj"
