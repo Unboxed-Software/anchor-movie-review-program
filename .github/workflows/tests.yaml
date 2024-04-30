@@ -33,12 +33,16 @@ jobs:
         run: |
           echo Linux version:
           lsb_release -a
+          echo
           echo Solana version:
           solana -V
+          echo
           echo Anchor version:
           anchor -V
+          echo
           echo build-sbf version:
           cargo build-sbf --version
+          echo
           echo Path:
           echo $PATH | tr ':' '\n' | sort
 
@@ -51,6 +55,11 @@ jobs:
 
       - name: Test the Movie Review project builds and tests pass
         run: |
+          npm i
+          echo
+          echo "Building the project..."
           anchor test 2>&1 | tee -a build.log
+          echo
+          echo "Checking for errors..."
           cat build.log
-          cat build.log | grep -qEv 'error|warn'
+          grep -qiEv 'error|warn' build.log
