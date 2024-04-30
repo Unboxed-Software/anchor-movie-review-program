@@ -53,4 +53,4 @@ jobs:
         run: |
           anchor test 2>&1 | tee -a build.log
           cat build.log
-          cat build.log | grep -qEv 'error|warn'
+          cat build.log | grep -qiEv 'error|warn'
