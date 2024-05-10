@@ -34,6 +34,7 @@ describe("anchor-movie-review-program", () => {
   )
 
   it("Initializes the reward token", async () => {
+    // By using "accountsPartial" we nedd to specify all the accounts
     const tx = await program.methods
       .initializeTokenMint()
       .accountsPartial({
@@ -49,13 +50,14 @@ describe("anchor-movie-review-program", () => {
       provider.wallet.publicKey
     )
 
+    // By using "accounts" we only need to specify the non-resolvable accounts. In this case, the PDAs and the mint are not needed, as they are automatically resolved.
     const tx = await program.methods
       .addMovieReview(movie.title, movie.description, movie.rating)
-      .accountsPartial({
-        movieReview: movie_pda,
-        mint: mint,
+      .accounts({
+        //movieReview: movie_pda,
+        //mint: mint,
         tokenAccount: tokenAccount,
-        movieCommentCounter: commentCounterPda,
+        //movieCommentCounter: commentCounterPda,
       })
       .rpc()
 
