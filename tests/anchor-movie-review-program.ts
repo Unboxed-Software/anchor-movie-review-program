@@ -1,6 +1,6 @@
-import * as anchor from "@project-serum/anchor"
-import { Program } from "@project-serum/anchor"
-import { assert, expect } from "chai"
+import * as anchor from "@coral-xyz/anchor"
+import { Program } from "@coral-xyz/anchor"
+import { expect } from "chai"
 import { AnchorMovieReviewProgram } from "../target/types/anchor_movie_review_program"
 
 describe("anchor-movie-review-program", () => {

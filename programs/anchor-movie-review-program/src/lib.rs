@@ -57,7 +57,7 @@ pub struct AddMovieReview<'info> {
         seeds=[title.as_bytes(), initializer.key().as_ref()],
         bump,
         payer = initializer,
-        space = 8 + 32 + 1 + 4 + title.len() + 4 + description.len()
+        space = MovieAccountState::INIT_SPACE + title.len() + description.len()
     )]
     pub movie_review: Account<'info, MovieAccountState>,
     #[account(mut)]
@@ -72,7 +72,7 @@ pub struct UpdateMovieReview<'info> {
         mut,
         seeds=[title.as_bytes(), initializer.key().as_ref()],
         bump,
-        realloc = 8 + 32 + 1 + 4 + title.len() + 4 + description.len(),
+        realloc = MovieAccountState::INIT_SPACE + title.len() + description.len(),
         realloc::payer = initializer,
         realloc::zero = true
     )]
@@ -102,4 +102,15 @@ pub struct MovieAccountState {
     pub rating: u8,
     pub title: String,
     pub description: String,
+}
+
+/*
+    8 bytes for the anchor discriminator 
+    32 bytes for reviewer Pubkey 
+    1 bytes for the rating
+    4 bytes for the title String (still need to add String length in the account initialization)
+    4 bytes for the description String (still need to add String length in the account initialization),
+ */
+impl Space for MovieAccountState {
+    const INIT_SPACE: usize = 8 + 32 + 1 + 4 + 4;
 }
