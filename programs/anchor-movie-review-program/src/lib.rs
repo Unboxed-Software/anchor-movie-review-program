@@ -37,7 +37,7 @@ pub mod anchor_movie_review_program {
                 },
                 &[&[
                     "mint".as_bytes().as_ref(),
-                    &[*ctx.bumps.get("mint").unwrap()]
+                    &[ctx.bumps.mint]
                 ]]
             ),
             10*10^6
@@ -72,7 +72,7 @@ pub mod anchor_movie_review_program {
                 },
                 &[&[
                     "mint".as_bytes().as_ref(),
-                    &[*ctx.bumps.get("mint").unwrap()]
+                    &[ctx.bumps.mint]
                 ]]
             ), 
             5*10^6
@@ -116,7 +116,7 @@ pub struct AddMovieReview<'info> {
         seeds=[title.as_bytes(), initializer.key().as_ref()], 
         bump, 
         payer = initializer, 
-        space = 8 + 32 + 1 + 4 + title.len() + 4 + description.len()
+        space = MovieAccountState::INIT_SPACE + title.len() + description.len()
     )]
     pub movie_review: Account<'info, MovieAccountState>,
     #[account(mut)]
@@ -128,7 +128,7 @@ pub struct AddMovieReview<'info> {
         seeds = ["counter".as_bytes().as_ref(), movie_review.key().as_ref()],
         bump,
         payer = initializer,
-        space = 8 + 8
+        space = MovieCommentCounter::INIT_SPACE
     )]
     pub movie_comment_counter: Account<'info, MovieCommentCounter>,
     #[account(
@@ -156,7 +156,7 @@ pub struct AddComment<'info> {
         seeds = [movie_review.key().as_ref(), &movie_comment_counter.counter.to_le_bytes()],
         bump,
         payer = initializer,
-        space = 8 + 32 + 32 + 4 + comment.len() + 8
+        space = MovieComment::INIT_SPACE + comment.len()
     )]
     pub movie_comment: Account<'info, MovieComment>,
     pub movie_review: Account<'info, MovieAccountState>,
@@ -194,7 +194,7 @@ pub struct UpdateMovieReview<'info> {
         mut,
         seeds=[title.as_bytes(), initializer.key().as_ref()],
         bump,
-        realloc = 8 + 32 + 1 + 4 + title.len() + 4 + description.len(),
+        realloc = MovieAccountState::INIT_SPACE + title.len() + description.len(),
         realloc::payer = initializer,
         realloc::zero = true
     )]
@@ -245,9 +245,29 @@ pub struct MovieAccountState {
     pub description: String,
 }
 
+/*
+    8 bytes for the anchor discriminator 
+    32 bytes for reviewer Pubkey 
+    1 bytes for the rating
+    4 bytes for the title String (still need to add String length in the account initialization)
+    4 bytes for the description String (still need to add String length in the account initialization),
+ */
+impl Space for MovieAccountState {
+    const INIT_SPACE: usize = 8 + 32 + 1 + 4 + 4;
+}
+
+
 #[account]
 pub struct MovieCommentCounter {
     pub counter: u64,
+}
+
+/*
+    8 bytes for the anchor discriminator 
+    8 bytes for the counter
+ */
+impl Space for MovieCommentCounter {
+    const INIT_SPACE: usize = 8 + 8;
 }
 
 #[account]
@@ -256,6 +276,17 @@ pub struct MovieComment {
     pub commenter: Pubkey, // 32
     pub comment: String,   // 4 + len()
     pub count: u64,        // 8
+}
+
+/*
+    8 bytes for the anchor discriminator 
+    32 bytes for review Pubkey 
+    32 bytes for commenter Pubkey 
+    4 bytes for the comment String (still need to add String length in the account initialization), 
+    8 bytes for the count
+ */
+impl Space for MovieComment {
+    const INIT_SPACE: usize = 8 + 32 + 32 + 4 + 8;
 }
 
 #[error_code]
