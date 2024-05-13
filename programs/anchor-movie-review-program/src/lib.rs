@@ -70,14 +70,14 @@ pub mod anchor_movie_review_program {
 }
 
 #[derive(Accounts)]
-#[instruction(title: String, description: String)]
+#[instruction(title: String)]
 pub struct AddMovieReview<'info> {
     #[account(
         init, 
         seeds=[title.as_bytes(), initializer.key().as_ref()], 
         bump, 
         payer = initializer, 
-        space = MovieAccountState::INIT_SPACE
+        space = 8 + MovieAccountState::INIT_SPACE
     )]
     pub movie_review: Account<'info, MovieAccountState>,
     #[account(mut)]
@@ -102,13 +102,13 @@ pub struct AddMovieReview<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(title: String, description: String)]
+#[instruction(title: String)]
 pub struct UpdateMovieReview<'info> {
     #[account(
         mut,
         seeds=[title.as_bytes(), initializer.key().as_ref()],
         bump,
-        realloc = MovieAccountState::INIT_SPACE,
+        realloc = 8 + MovieAccountState::INIT_SPACE,
         realloc::payer = initializer,
         realloc::zero = true
     )]
