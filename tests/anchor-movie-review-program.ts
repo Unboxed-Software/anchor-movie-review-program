@@ -57,7 +57,6 @@ describe("anchor-movie-review-program", () => {
         //movieReview: movie_pda,
         //mint: mint,
         tokenAccount: tokenAccount,
-        //movieCommentCounter: commentCounterPda,
       })
       .rpc()
 
