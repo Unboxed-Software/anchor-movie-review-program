@@ -50,7 +50,7 @@ describe("anchor-movie-review-program", () => {
       provider.wallet.publicKey
     )
 
-    // By using "accounts" we only need to specify the non-resolvable accounts. In this case, the PDAs and the mint are not needed, as they are automatically resolved.
+    // By using "accounts" we only need to specify the non-resolvable accounts. The PDAs 'movieReview' and 'movieCommentCounter' as well as the 'mint' are not needed, as they are automatically resolved.
     const tx = await program.methods
       .addMovieReview(movie.title, movie.description, movie.rating)
       .accounts({
