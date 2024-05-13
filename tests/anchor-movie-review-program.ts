@@ -54,8 +54,6 @@ describe("anchor-movie-review-program", () => {
     const tx = await program.methods
       .addMovieReview(movie.title, movie.description, movie.rating)
       .accounts({
-        //movieReview: movie_pda,
-        //mint: mint,
         tokenAccount: tokenAccount,
       })
       .rpc()
