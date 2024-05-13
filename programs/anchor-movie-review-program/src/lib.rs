@@ -109,14 +109,14 @@ pub mod anchor_movie_review_program {
 }
 
 #[derive(Accounts)]
-#[instruction(title: String, description: String)]
+#[instruction(title: String)]
 pub struct AddMovieReview<'info> {
     #[account(
         init, 
         seeds=[title.as_bytes(), initializer.key().as_ref()], 
         bump, 
         payer = initializer, 
-        space = MovieAccountState::INIT_SPACE + title.len() + description.len()
+        space = 8 + MovieAccountState::INIT_SPACE
     )]
     pub movie_review: Account<'info, MovieAccountState>,
     #[account(mut)]
@@ -128,7 +128,7 @@ pub struct AddMovieReview<'info> {
         seeds = ["counter".as_bytes().as_ref(), movie_review.key().as_ref()],
         bump,
         payer = initializer,
-        space = MovieCommentCounter::INIT_SPACE
+        space = 8 + MovieCommentCounter::INIT_SPACE
     )]
     pub movie_comment_counter: Account<'info, MovieCommentCounter>,
     #[account(
@@ -149,14 +149,13 @@ pub struct AddMovieReview<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(comment:String)]
 pub struct AddComment<'info> {
     #[account(
         init,
         seeds = [movie_review.key().as_ref(), &movie_comment_counter.counter.to_le_bytes()],
         bump,
         payer = initializer,
-        space = MovieComment::INIT_SPACE + comment.len()
+        space = 8 + MovieComment::INIT_SPACE
     )]
     pub movie_comment: Account<'info, MovieComment>,
     pub movie_review: Account<'info, MovieAccountState>,
@@ -188,13 +187,13 @@ pub struct AddComment<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(title: String, description: String)]
+#[instruction(title: String)]
 pub struct UpdateMovieReview<'info> {
     #[account(
         mut,
         seeds=[title.as_bytes(), initializer.key().as_ref()],
         bump,
-        realloc = MovieAccountState::INIT_SPACE + title.len() + description.len(),
+        realloc = 8 + MovieAccountState::INIT_SPACE,
         realloc::payer = initializer,
         realloc::zero = true
     )]
@@ -238,55 +237,31 @@ pub struct InitializeMint<'info> {
 }
 
 #[account]
+#[derive(InitSpace)]
 pub struct MovieAccountState {
     pub reviewer: Pubkey,
     pub rating: u8,
+    #[max_len(20)]
     pub title: String,
+    #[max_len(50)]
     pub description: String,
-}
-
-/*
-    8 bytes for the anchor discriminator 
-    32 bytes for reviewer Pubkey 
-    1 bytes for the rating
-    4 bytes for the title String (still need to add String length in the account initialization)
-    4 bytes for the description String (still need to add String length in the account initialization),
- */
-impl Space for MovieAccountState {
-    const INIT_SPACE: usize = 8 + 32 + 1 + 4 + 4;
 }
 
 
 #[account]
+#[derive(InitSpace)]
 pub struct MovieCommentCounter {
     pub counter: u64,
 }
 
-/*
-    8 bytes for the anchor discriminator 
-    8 bytes for the counter
- */
-impl Space for MovieCommentCounter {
-    const INIT_SPACE: usize = 8 + 8;
-}
-
 #[account]
+#[derive(InitSpace)]
 pub struct MovieComment {
     pub review: Pubkey,    // 32
     pub commenter: Pubkey, // 32
+    #[max_len(60)]
     pub comment: String,   // 4 + len()
     pub count: u64,        // 8
-}
-
-/*
-    8 bytes for the anchor discriminator 
-    32 bytes for review Pubkey 
-    32 bytes for commenter Pubkey 
-    4 bytes for the comment String (still need to add String length in the account initialization), 
-    8 bytes for the count
- */
-impl Space for MovieComment {
-    const INIT_SPACE: usize = 8 + 32 + 32 + 4 + 8;
 }
 
 #[error_code]
