@@ -209,12 +209,15 @@ pub struct AddComment<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(title: String)]
+#[instruction(title: String, description: String)]
 pub struct UpdateMovieReview<'info> {
     #[account(
         mut,
         seeds=[title.as_bytes(), initializer.key().as_ref()],
         bump,
+        realloc = MovieAccountState::INIT_SPACE + title.len() + description.len(), // We add the length of the title and description to the init space
+        realloc::payer = initializer,
+        realloc::zero = true
     )]
     pub movie_review: Account<'info, MovieAccountState>,
     #[account(mut)]
