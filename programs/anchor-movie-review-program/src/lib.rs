@@ -15,13 +15,13 @@ pub mod anchor_movie_review_program {
     pub fn add_movie_review(ctx: Context<AddMovieReview>, title: String, description: String, rating: u8) -> Result<()> {
 
         // We require that the rating is between 1 and 5
-        require!(rating >= 1 && rating <= 5, MovieReviewError::InvalidRating);
+        require!(rating >= MIN_RATING && rating <= MAX_RATING, MovieReviewError::InvalidRating);
 
         // We require that the title is not longer than 20 characters
-        require!(title.len() <= 20, MovieReviewError::TitleTooLong);
+        require!(title.len() <= MAX_TITLE_LENGTH, MovieReviewError::TitleTooLong);
 
         // We require that the description is not longer than 50 characters
-        require!(description.len() <= 50, MovieReviewError::DescriptionTooLong);
+        require!(description.len() <= MAX_DESCRIPTION_LENGTH, MovieReviewError::DescriptionTooLong);
 
         msg!("Movie review account created");
         msg!("Title: {}", title);
@@ -63,7 +63,7 @@ pub mod anchor_movie_review_program {
     pub fn add_comment(ctx: Context<AddComment>, comment: String) -> Result<()> {
 
         // We require that the comment is not longer than 60 characters
-        require!(comment.len() <= 60, MovieReviewError::CommentTooLong);
+        require!(comment.len() <= MAX_COMMENT_LENGTH, MovieReviewError::CommentTooLong);
 
         msg!("Comment Account Created");
         msg!("Comment: {}", comment);
@@ -101,10 +101,10 @@ pub mod anchor_movie_review_program {
     pub fn update_movie_review(ctx: Context<UpdateMovieReview>, title: String, description: String, rating: u8) -> Result<()> {
         
         // We require that the rating is between 1 and 5
-        require!(rating >= 1 && rating <= 5, MovieReviewError::InvalidRating);
+        require!(rating >= MIN_RATING && rating <= MAX_RATING, MovieReviewError::InvalidRating);
 
         // We require that the description is not longer than 50 characters
-        require!(description.len() <= 50, MovieReviewError::DescriptionTooLong);
+        require!(description.len() <= MAX_DESCRIPTION_LENGTH, MovieReviewError::DescriptionTooLong);
 
         msg!("Movie review account space reallocated");
         msg!("Title: {}", title);
