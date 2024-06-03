@@ -1,5 +1,5 @@
-import * as anchor from "@project-serum/anchor"
-import { Program } from "@project-serum/anchor"
+import * as anchor from "@coral-xyz/anchor"
+import { Program } from "@coral-xyz/anchor"
 import { expect } from "chai"
 import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token"
 import { AnchorMovieReviewProgram } from "../target/types/anchor_movie_review_program"
@@ -34,9 +34,10 @@ describe("anchor-movie-review-program", () => {
   )
 
   it("Initializes the reward token", async () => {
+    // By using "accountsPartial" we nedd to specify all the accounts
     const tx = await program.methods
       .initializeTokenMint()
-      .accounts({
+      .accountsPartial({
         mint: mint,
       })
       .rpc()
@@ -49,13 +50,11 @@ describe("anchor-movie-review-program", () => {
       provider.wallet.publicKey
     )
 
+    // By using "accounts" we only need to specify the non-resolvable accounts. The PDAs 'movieReview' and 'movieCommentCounter' as well as the 'mint' are not needed, as they are automatically resolved.
     const tx = await program.methods
       .addMovieReview(movie.title, movie.description, movie.rating)
       .accounts({
-        movieReview: movie_pda,
-        mint: mint,
         tokenAccount: tokenAccount,
-        movieCommentCounter: commentCounterPda,
       })
       .rpc()
 
@@ -75,7 +74,7 @@ describe("anchor-movie-review-program", () => {
 
     const tx = await program.methods
       .updateMovieReview(movie.title, newDescription, newRating)
-      .accounts({
+      .accountsPartial({
         movieReview: movie_pda,
       })
       .rpc()
@@ -107,7 +106,7 @@ describe("anchor-movie-review-program", () => {
 
     const tx = await program.methods
       .addComment("Just a test comment")
-      .accounts({
+      .accountsPartial({
         movieReview: movie_pda,
         mint: mint,
         tokenAccount: tokenAccount,
@@ -120,7 +119,7 @@ describe("anchor-movie-review-program", () => {
   it("Deletes a movie review", async () => {
     const tx = await program.methods
       .deleteMovieReview(movie.title)
-      .accounts({ movieReview: movie_pda })
+      .accountsPartial({ movieReview: movie_pda })
       .rpc()
   })
 })

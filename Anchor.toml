@@ -8,8 +8,8 @@ anchor_movie_review_program = "ET1Gctnke2Gwusu336M2kfaRsfMY9ddg6RHWD3GzJDyN"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
-wallet = "/Users/James/.config/solana/id.json"
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
