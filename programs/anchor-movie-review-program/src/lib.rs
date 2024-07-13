@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::{mint_to, MintTo, Mint, TokenAccount, Token};
 use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::{mint_to, Mint, MintTo, Token, TokenAccount};
 
 pub mod contants;
 
@@ -12,29 +12,15 @@ declare_id!("FmzAVsBmJWcfkfe7VrvEi7pLA9ALLDWB3NoU2MvLrCZj");
 pub mod anchor_movie_review_program {
     use super::*;
 
-    pub fn add_movie_review(
-        ctx: Context<AddMovieReview>,
-        title: String,
-        description: String,
-        rating: u8,
-    ) -> Result<()> {
+    pub fn add_movie_review(ctx: Context<AddMovieReview>, title: String, description: String, rating: u8) -> Result<()> {
         // We require that the rating is between 1 and 5
-        require!(
-            rating >= MIN_RATING && rating <= MAX_RATING,
-            MovieReviewError::InvalidRating
-        );
+        require!(rating >= MIN_RATING && rating <= MAX_RATING, MovieReviewError::InvalidRating);
 
         // We require that the title is not longer than 20 characters
-        require!(
-            title.len() <= MAX_TITLE_LENGTH,
-            MovieReviewError::TitleTooLong
-        );
+        require!(title.len() <= MAX_TITLE_LENGTH, MovieReviewError::TitleTooLong);
 
         // We require that the description is not longer than 50 characters
-        require!(
-            description.len() <= MAX_DESCRIPTION_LENGTH,
-            MovieReviewError::DescriptionTooLong
-        );
+        require!(description.len() <= MAX_DESCRIPTION_LENGTH, MovieReviewError::DescriptionTooLong);
 
         msg!("Movie review account created");
         msg!("Title: {}", title);
@@ -53,11 +39,14 @@ pub mod anchor_movie_review_program {
                 MintTo {
                     authority: ctx.accounts.mint.to_account_info(),
                     to: ctx.accounts.token_account.to_account_info(),
-                    mint: ctx.accounts.mint.to_account_info(),
+                    mint: ctx.accounts.mint.to_account_info()
                 },
-                &[&["mint".as_bytes(), &[ctx.bumps.mint]]],
+                &[&[
+                    "mint".as_bytes(),
+                    &[ctx.bumps.mint]
+                ]]
             ),
-            10 * 10_u64.pow(6), // 10 * 10^6
+            10 * 10_u64.pow(6),
         )?;
 
         msg!("Minted tokens");
@@ -65,23 +54,12 @@ pub mod anchor_movie_review_program {
         Ok(())
     }
 
-    pub fn update_movie_review(
-        ctx: Context<UpdateMovieReview>,
-        title: String,
-        description: String,
-        rating: u8,
-    ) -> Result<()> {
+    pub fn update_movie_review(ctx: Context<UpdateMovieReview>, title: String, description: String, rating: u8) -> Result<()> {
         // We require that the rating is between 1 and 5
-        require!(
-            rating >= MIN_RATING && rating <= MAX_RATING,
-            MovieReviewError::InvalidRating
-        );
+        require!(rating >= MIN_RATING && rating <= MAX_RATING, MovieReviewError::InvalidRating);
 
         // We require that the description is not longer than 50 characters
-        require!(
-            description.len() <= MAX_DESCRIPTION_LENGTH,
-            MovieReviewError::DescriptionTooLong
-        );
+        require!(description.len() <= MAX_DESCRIPTION_LENGTH, MovieReviewError::DescriptionTooLong);
 
         msg!("Movie review account space reallocated");
         msg!("Title: {}", title);
@@ -135,7 +113,7 @@ pub struct AddMovieReview<'info> {
     )]
     pub token_account: Account<'info, TokenAccount>,
     pub associated_token_program: Program<'info, AssociatedToken>,
-    pub rent: Sysvar<'info, Rent>,
+    pub rent: Sysvar<'info, Rent>
 }
 
 #[derive(Accounts)]
@@ -149,7 +127,7 @@ pub struct UpdateMovieReview<'info> {
     pub movie_review: Account<'info, MovieAccountState>,
     #[account(mut)]
     pub initializer: Signer<'info>,
-    pub system_program: Program<'info, System>,
+    pub system_program: Program<'info, System>
 }
 
 #[derive(Accounts)]
@@ -164,7 +142,7 @@ pub struct DeleteMovieReview<'info> {
     pub movie_review: Account<'info, MovieAccountState>,
     #[account(mut)]
     pub initializer: Signer<'info>,
-    pub system_program: Program<'info, System>,
+    pub system_program: Program<'info, System>
 }
 
 #[derive(Accounts)]
@@ -182,14 +160,14 @@ pub struct InitializeMint<'info> {
     pub user: Signer<'info>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
-    pub system_program: Program<'info, System>,
+    pub system_program: Program<'info, System>
 }
 
 /*
-   For the MovieAccountState account, since it is dynamic, we implement the Space trait to calculate the space required for the account.
-   We add the STRING_LENGTH_PREFIX twice to the space to account for the title and description string prefix.
-   We need to add the length of the title and description to the space upon initialization.
-*/
+    For the MovieAccountState account, since it is dynamic, we implement the Space trait to calculate the space required for the account.
+    We add the STRING_LENGTH_PREFIX twice to the space to account for the title and description string prefix.
+    We need to add the length of the title and description to the space upon initialization.
+ */
 #[account]
 pub struct MovieAccountState {
     pub reviewer: Pubkey,
@@ -199,8 +177,7 @@ pub struct MovieAccountState {
 }
 
 impl Space for MovieAccountState {
-    const INIT_SPACE: usize =
-        ANCHOR_DISCRIMINATOR + PUBKEY_SIZE + U8_SIZE + STRING_LENGTH_PREFIX + STRING_LENGTH_PREFIX;
+    const INIT_SPACE: usize = ANCHOR_DISCRIMINATOR + PUBKEY_SIZE + U8_SIZE + STRING_LENGTH_PREFIX + STRING_LENGTH_PREFIX;
 }
 
 #[error_code]
