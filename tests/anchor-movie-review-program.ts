@@ -92,11 +92,11 @@ describe("anchor-movie-review-program", () => {
       provider.wallet.publicKey
     )
 
-    let commentCounter = await program.account.movieCommentCounter.fetch(
+    const commentCounter = await program.account.movieCommentCounter.fetch(
       commentCounterPda
     )
 
-    let [commentPda] = anchor.web3.PublicKey.findProgramAddressSync(
+    const [commentPda] = anchor.web3.PublicKey.findProgramAddressSync(
       [
         movie_pda.toBuffer(),
         commentCounter.counter.toArrayLike(Buffer, "le", 8),
