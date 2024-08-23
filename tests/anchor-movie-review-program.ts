@@ -52,7 +52,7 @@ describe("anchor-movie-review-program", () => {
     expect(account.reviewer === provider.wallet.publicKey)
 
     const userAta = await getAccount(provider.connection, tokenAccount)
-    expect(Number(userAta.amount)).to.equal((10 * 10) ^ 6)
+    expect(Number(userAta.amount)).to.equal(10 * Math.pow(10, 6))
   })
 
   it("Movie review is updated`", async () => {

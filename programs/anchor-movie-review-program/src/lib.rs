@@ -26,7 +26,7 @@ pub mod anchor_movie_review_program {
         msg!("Title: {}", title);
         msg!("Description: {}", description);
         msg!("Rating: {}", rating);
-        
+
         let movie_review = &mut ctx.accounts.movie_review;
         movie_review.reviewer = ctx.accounts.initializer.key();
         movie_review.title = title;
@@ -36,8 +36,8 @@ pub mod anchor_movie_review_program {
         mint_to(
             CpiContext::new_with_signer(
                 ctx.accounts.token_program.to_account_info(),
-                MintTo { 
-                    authority: ctx.accounts.mint.to_account_info(), 
+                MintTo {
+                    authority: ctx.accounts.mint.to_account_info(),
                     to: ctx.accounts.token_account.to_account_info(),
                     mint: ctx.accounts.mint.to_account_info()
                 },
@@ -46,11 +46,11 @@ pub mod anchor_movie_review_program {
                     &[ctx.bumps.mint]
                 ]]
             ),
-            10*10^6
+            10 * 10_u64.pow(6),
         )?;
 
         msg!("Minted tokens");
-        
+
         Ok(())
     }
 
@@ -65,11 +65,11 @@ pub mod anchor_movie_review_program {
         msg!("Title: {}", title);
         msg!("Description: {}", description);
         msg!("Rating: {}", rating);
-        
+
         let movie_review = &mut ctx.accounts.movie_review;
         movie_review.description = description;
         movie_review.rating = rating;
-        
+
         Ok(())
     }
 
@@ -88,10 +88,10 @@ pub mod anchor_movie_review_program {
 #[instruction(title: String, description: String)]
 pub struct AddMovieReview<'info> {
     #[account(
-        init, 
-        seeds=[title.as_bytes(), initializer.key().as_ref()], 
-        bump, 
-        payer = initializer, 
+        init,
+        seeds=[title.as_bytes(), initializer.key().as_ref()],
+        bump,
+        payer = initializer,
         space = MovieAccountState::INIT_SPACE + title.len() + description.len() // We add the length of the title and description to the init space
     )]
     pub movie_review: Account<'info, MovieAccountState>,
