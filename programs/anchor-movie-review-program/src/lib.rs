@@ -74,9 +74,8 @@ pub mod anchor_movie_review_program {
         movie_comment.review = ctx.accounts.movie_review.key();
         movie_comment.commenter = ctx.accounts.initializer.key();
         movie_comment.comment = comment;
-        movie_comment.count = movie_comment_counter.counter;
-
         movie_comment_counter.counter += 1;
+        movie_comment.count = movie_comment_counter.counter;
 
         mint_to(
             CpiContext::new_with_signer(
