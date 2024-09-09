@@ -1,4 +1,4 @@
-# PDA Sharing
+# Anchor CPI
 
 This project demonstrates anchor based movie review program on Solana. Example code from the Anchor CPI lesson from the Solana onchain development course.
 
