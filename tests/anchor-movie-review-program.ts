@@ -1,55 +1,74 @@
-import * as anchor from "@coral-xyz/anchor"
-import { Program } from "@coral-xyz/anchor"
-import { expect } from "chai"
-import { AnchorMovieReviewProgram } from "../target/types/anchor_movie_review_program"
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { expect } from "chai";
+import { AnchorMovieReviewProgram } from "../target/types/anchor_movie_review_program";
 
-describe("anchor-movie-review-program", () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env()
-  anchor.setProvider(provider)
+describe("Anchor Movie Review Program", () => {
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
-  const program = anchor.workspace
-    .AnchorMovieReviewProgram as Program<AnchorMovieReviewProgram>
+  const program = anchor.workspace.AnchorMovieReviewProgram as Program<AnchorMovieReviewProgram>;
 
   const movie = {
     title: "Just a test movie",
     description: "Wow what a good movie it was real great",
     rating: 5,
-  }
+  };
+
   const [moviePda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(movie.title), provider.wallet.publicKey.toBuffer()],
     program.programId
-  )
+  );
 
-  it("Movie review is added`", async () => {
-    // Add your test here.
-    const tx = await program.methods
-      .addMovieReview(movie.title, movie.description, movie.rating)
-      .rpc()
+  it("adds a movie review", async () => {
+    try {
+      await program.methods
+        .addMovieReview(movie.title, movie.description, movie.rating)
+        .rpc();
 
-    const account = await program.account.movieAccountState.fetch(moviePda)
-    expect(movie.title === account.title)
-    expect(movie.rating === account.rating)
-    expect(movie.description === account.description)
-    expect(account.reviewer === provider.wallet.publicKey)
-  })
+      const account = await program.account.movieAccountState.fetch(moviePda);
+      expect(account.title).to.equal(movie.title);
+      expect(account.rating).to.equal(movie.rating);
+      expect(account.description).to.equal(movie.description);
+      expect(account.reviewer.toString()).to.equal(provider.wallet.publicKey.toString());
+    } catch (error) {
+      console.error("Error adding movie review:", error);
+      throw error;
+    }
+  });
 
-  it("Movie review is updated`", async () => {
-    const newDescription = "Wow this is new"
-    const newRating = 4
+  it("updates a movie review", async () => {
+    const newDescription = "Wow this is new";
+    const newRating = 4;
 
-    const tx = await program.methods
-      .updateMovieReview(movie.title, newDescription, newRating)
-      .rpc()
+    try {
+      await program.methods
+        .updateMovieReview(movie.title, newDescription, newRating)
+        .rpc();
 
-    const account = await program.account.movieAccountState.fetch(moviePda)
-    expect(movie.title === account.title)
-    expect(newRating === account.rating)
-    expect(newDescription === account.description)
-    expect(account.reviewer === provider.wallet.publicKey)
-  })
+      const account = await program.account.movieAccountState.fetch(moviePda);
+      expect(account.title).to.equal(movie.title);
+      expect(account.rating).to.equal(newRating);
+      expect(account.description).to.equal(newDescription);
+      expect(account.reviewer.toString()).to.equal(provider.wallet.publicKey.toString());
+    } catch (error) {
+      console.error("Error updating movie review:", error);
+      throw error;
+    }
+  });
 
-  it("Deletes a movie review", async () => {
-    const tx = await program.methods.deleteMovieReview(movie.title).rpc()
-  })
-})
+  it("deletes a movie review", async () => {
+    try {
+      await program.methods.deleteMovieReview(movie.title).rpc();
+      try {
+        await program.account.movieAccountState.fetch(moviePda);
+        throw new Error("Account should have been deleted");
+      } catch (error) {
+        expect(error.message).to.include("Account does not exist");
+      }
+    } catch (error) {
+      console.error("Error deleting movie review:", error);
+      throw error;
+    }
+  });
+});
