@@ -6,7 +6,7 @@ pub mod contants;
 
 pub use contants::*;
 
-declare_id!("FmzAVsBmJWcfkfe7VrvEi7pLA9ALLDWB3NoU2MvLrCZj");
+declare_id!("8zLkkwXZ6wjdBHKqwzYHjjZu8VLnpcRSyxfZKV6wJhUA");
 
 #[program]
 pub mod anchor_movie_review_program {
