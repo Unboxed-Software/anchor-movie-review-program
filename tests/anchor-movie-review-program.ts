@@ -1,76 +1,111 @@
-import * as anchor from "@coral-xyz/anchor"
-import { Program } from "@coral-xyz/anchor"
-import { expect } from "chai"
-import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token"
-import { AnchorMovieReviewProgram } from "../target/types/anchor_movie_review_program"
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { expect } from "chai";
+import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
+import { AnchorMovieReviewProgram } from "../target/types/anchor_movie_review_program";
 
-describe("anchor-movie-review-program", () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env()
-  anchor.setProvider(provider)
+describe("Anchor Movie Review Program", () => {
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
   const program = anchor.workspace
-    .AnchorMovieReviewProgram as Program<AnchorMovieReviewProgram>
+    .AnchorMovieReviewProgram as Program<AnchorMovieReviewProgram>;
 
   const movie = {
     title: "Just a test movie",
     description: "Wow what a good movie it was real great",
     rating: 5,
-  }
+  };
 
-  const [movie_pda] = anchor.web3.PublicKey.findProgramAddressSync(
+  const [moviePda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from(movie.title), provider.wallet.publicKey.toBuffer()],
     program.programId
-  )
+  );
 
   const [mint] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("mint")],
     program.programId
-  )
+  );
 
-  it("Initializes the reward token", async () => {
-    const tx = await program.methods.initializeTokenMint().rpc()
-  })
+  let tokenAccount: anchor.web3.PublicKey;
 
-  it("Movie review is added`", async () => {
-    const tokenAccount = await getAssociatedTokenAddress(
+  before(async () => {
+    tokenAccount = await getAssociatedTokenAddress(
       mint,
       provider.wallet.publicKey
-    )
+    );
+  });
 
-    const tx = await program.methods
-      .addMovieReview(movie.title, movie.description, movie.rating)
-      .accounts({
-        tokenAccount: tokenAccount,
-      })
-      .rpc()
+  it("initializes the reward token", async () => {
+    try {
+      await program.methods.initializeTokenMint().rpc();
+    } catch (error) {
+      console.error("Error initializing token mint:", error);
+      throw error;
+    }
+  });
 
-    const account = await program.account.movieAccountState.fetch(movie_pda)
-    expect(movie.title === account.title)
-    expect(movie.rating === account.rating)
-    expect(movie.description === account.description)
-    expect(account.reviewer === provider.wallet.publicKey)
+  it("adds a movie review", async () => {
+    try {
+      await program.methods
+        .addMovieReview(movie.title, movie.description, movie.rating)
+        .accounts({
+          tokenAccount: tokenAccount,
+        })
+        .rpc();
 
-    const userAta = await getAccount(provider.connection, tokenAccount)
-    expect(Number(userAta.amount)).to.equal((10 * 10) ^ 6)
-  })
+      const account = await program.account.movieAccountState.fetch(moviePda);
+      expect(account.title).to.equal(movie.title);
+      expect(account.rating).to.equal(movie.rating);
+      expect(account.description).to.equal(movie.description);
+      expect(account.reviewer.toString()).to.equal(
+        provider.wallet.publicKey.toString()
+      );
 
-  it("Movie review is updated`", async () => {
-    const newDescription = "Wow this is new"
-    const newRating = 4
+      const userAta = await getAccount(provider.connection, tokenAccount);
+      expect(Number(userAta.amount)).to.equal((10 * 10) ^ 6);
+    } catch (error) {
+      console.error("Error adding movie review:", error);
+      throw error;
+    }
+  });
 
-    const tx = await program.methods
-      .updateMovieReview(movie.title, newDescription, newRating)
-      .rpc()
+  it("updates a movie review", async () => {
+    const newDescription = "Wow this is new";
+    const newRating = 4;
 
-    const account = await program.account.movieAccountState.fetch(movie_pda)
-    expect(movie.title === account.title)
-    expect(newRating === account.rating)
-    expect(newDescription === account.description)
-    expect(account.reviewer === provider.wallet.publicKey)
-  })
+    try {
+      await program.methods
+        .updateMovieReview(movie.title, newDescription, newRating)
+        .rpc();
 
-  it("Deletes a movie review", async () => {
-    const tx = await program.methods.deleteMovieReview(movie.title).rpc()
-  })
-})
+      const account = await program.account.movieAccountState.fetch(moviePda);
+      expect(account.title).to.equal(movie.title);
+      expect(account.rating).to.equal(newRating);
+      expect(account.description).to.equal(newDescription);
+      expect(account.reviewer.toString()).to.equal(
+        provider.wallet.publicKey.toString()
+      );
+    } catch (error) {
+      console.error("Error updating movie review:", error);
+      throw error;
+    }
+  });
+
+  it("deletes a movie review", async () => {
+    try {
+      await program.methods.deleteMovieReview(movie.title).rpc();
+
+      // Optionally, verify that the account was deleted
+      try {
+        await program.account.movieAccountState.fetch(moviePda);
+        throw new Error("Account should have been deleted");
+      } catch (error) {
+        expect(error.message).to.include("Account does not exist");
+      }
+    } catch (error) {
+      console.error("Error deleting movie review:", error);
+      throw error;
+    }
+  });
+});
